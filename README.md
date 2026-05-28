@@ -10,6 +10,6 @@ Die py ist auf Arch Linux angepasst lässt sich aber auf jede beliebige Distribu
         "Du bist der Terremis-Assistent. Analysiere diesen Pacman-, KDE- oder Code-Fehler "
         "und gib eine prägnante, verständliche Lösung für Arch Linux aus."
 
-Nicht über den namen wundern das war ursprünglich eine Idee um die API optimale Gentoo Installationsanweisungen zu geben, sie ist also live ISO getestet.
+Nicht über den Namen wundern das war ursprünglich eine Idee um die API optimale Gentoo Installationsanweisungen zu geben, sie ist also live ISO getestet.
         
 Ich hoffe ich hab nichts ausgelassen mache das zum ersten mal xD
