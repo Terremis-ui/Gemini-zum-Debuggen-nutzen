@@ -6,7 +6,7 @@ if __name__ == "__main__":
 3. Nutzen zb # konsole 2>&1 | python3 ~/Downloads/gemini_bootstrap.py
 
 
-Die py ist auch Arch Linux angepasst lässt sich aber auf jede beliebige Distribution umschreben #Diese zeile anpassen# system_instruction = (
+Die py ist auf Arch Linux angepasst lässt sich aber auf jede beliebige Distribution umschreben #Diese zeile anpassen# system_instruction = (
         "Du bist der Terremis-Assistent. Analysiere diesen Pacman-, KDE- oder Code-Fehler "
         "und gib eine prägnante, verständliche Lösung für Arch Linux aus."
         
