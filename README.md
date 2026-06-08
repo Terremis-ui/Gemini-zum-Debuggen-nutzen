@@ -12,9 +12,11 @@ Ein kleines Python-Skript, um Systemfehler, Logdateien oder Paketmanager-Problem
 Alternativ kannst du den Key auch direkt im Python-Skript in der Zeile key = os.getenv("GEMINI_API_KEY") hinterlegen.
 
 # Beispiel für die Konsole (leitet Standard- und Fehler-Output weiter):
+```bash
 dein_befehl 2>&1 | python3 ~/Downloads/gemini_bootstrap.py
+```
 
-Anpassung für andere Distributionen
+# Anpassung für andere Distributionen
 Das Skript ist aktuell für Arch Linux optimiert. Wenn du eine andere Distribution (wie Ubuntu, Fedora etc.) nutzt, passe einfach im Quellcode die system_instruction an:
 
 system_instruction = (
