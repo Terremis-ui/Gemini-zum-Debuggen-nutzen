@@ -18,7 +18,10 @@ Nutzung & Argumente
 Du kannst jeden beliebigen Befehl oder Fehler-Output über eine Pipe direkt an das Skript übergeben. Standardmäßig ist das Skript auf Arch Linux eingestellt.
 
 # Standard-Nutzung (für Arch Linux):
-dein_befehl 2>&1 | python3 gemini_bootstrap.py
+zb. Für Updates 
+```bash
+sudo pacman -Syu 2>&1 | tee /dev/tty | python3 ~/Downloads/gemini_bootstrap.py
+```
 
 Die "Big Six" Support-Argumente
 Wenn du eine andere Distribution nutzt, hänge einfach das passende --distro Argument hinten an:
