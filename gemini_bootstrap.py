@@ -7,7 +7,10 @@ import argparse
 import pydoc
 import json
 
-# Die Datenbank liegt jetzt direkt im selben Ordner wie das Skript im Git-Repo!
+# ==========================================
+# TERREMIS GLOBAL CONFIG & VERSIONING
+# ==========================================
+VERSION = "v1.0.1_Beta"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(SCRIPT_DIR, "terremis_global_errors.json")
 
@@ -32,13 +35,13 @@ def git_pull():
 def git_push_update():
     """Pusht den neuen Fehler-Fix sofort ins GitHub-Repo."""
     try:
-        print("[*] Synchronisiere mit GitHub-Repository...")
+        print(f"[*] Terremis {VERSION}: Synchronisiere mit GitHub...")
         subprocess.run(["git", "-C", SCRIPT_DIR, "add", DB_FILE], check=True)
-        subprocess.run(["git", "-C", SCRIPT_DIR, "commit", "-m", "chore: neuer Fehler-Fix im Wissensarchiv hinterlegt"], check=True)
+        subprocess.run(["git", "-C", SCRIPT_DIR, "commit", "-m", f"chore: neuer Fehler-Fix im Wissensarchiv ({VERSION})"], check=True)
         subprocess.run(["git", "-C", SCRIPT_DIR, "push"], check=True)
         print("\033[1;32m[✓] Erfolgreich weltweit auf GitHub gepusht!\033[0m")
     except Exception as e:
-        print(f"\033[1;31m[-] Git Push fehlgeschlagen (Rechte prüfen?): {e}\033[0m")
+        print(f"\033[1;31m[-] Git Push fehlgeschlagen: {e}\033[0m")
 
 def load_error_db():
     if os.path.exists(DB_FILE):
@@ -70,28 +73,27 @@ def filter_critical_logs(raw_terminal_output):
         return "\n".join(raw_terminal_output.splitlines()[-20:])
 
 def run_genai(api_key, raw_data, distro, mode):
-    # Vorab-Sync: Hol die neuesten Fixes von Git
+    # Vorab-Sync der Community-Datenbank
     git_pull()
     
     input_data = filter_critical_logs(raw_data)
     if not input_data.strip():
-        print("🎉 Alles sauber! Keine kritischen Fehler gefunden.")
+        print(f"🎉 Terremis {VERSION}: Alles sauber! Keine kritischen Fehler gefunden.")
         return
     
     db = load_error_db()
     error_key = "".join(input_data.split())
     
-    # Prüfen, ob der Fehler bereits lokal/global bekannt ist
+    # Prüfen, ob der Fehler bereits im globalen Archiv existiert
     if error_key in db and distro in db[error_key]:
         print(f"\n\033[1;32m[✓] Fehler im globalen Terremis-Archiv gefunden!\033[0m")
         
-        # Modus-Unterscheidung bei der Ausgabe!
         if mode == "dev":
             comment = db[error_key][distro].get("comment_en", "No English translation available.")
-            title = "TERREMIS GLOBAL KNOWLEDGE ARCHIVE (DEVELOPER EN)"
+            title = f"TERREMIS GLOBAL KNOWLEDGE ARCHIVE ({VERSION} | DEVELOPER EN)"
         else:
             comment = db[error_key][distro].get("comment_de", "Keine deutsche Übersetzung vorhanden.")
-            title = "TERREMIS GLOBALES WISSENSARCHIV (TESTER DE)"
+            title = f"TERREMIS GLOBALES WISSENSARCHIV ({VERSION} | TESTER DE)"
             
         output_buffer = (
             f"\n\033[1;33m=== {title} ===\033[0m\n"
@@ -104,7 +106,7 @@ def run_genai(api_key, raw_data, distro, mode):
         pydoc.pipepager(output_buffer, cmd='less -R')
         return
 
-    # Wenn neu, dann ab zu Gemini
+    # Ab zu Gemini, falls der Fehler neu ist
     try:
         from google import genai
         from google.genai import types
@@ -130,12 +132,12 @@ def run_genai(api_key, raw_data, distro, mode):
     for m_id in models_to_try:
         if success: break
         try:
-            print(f"[*] Kontaktiere {m_id} für {distro.upper()}...")
+            print(f"[*] [{VERSION}] Kontaktiere {m_id} für {distro.upper()}...")
             res = client.models.generate_content(model=m_id, contents=f"Log-Auszug:\n{input_data}", config=config)
             
             clean_text = res.text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
             output_buffer = (
-                f"\n\033[1;33m=== TERREMIS KI ANALYSE (Powered by Gemini) ===\033[0m\n"
+                f"\n\033[1;33m=== TERREMIS KI ANALYSE ({VERSION} | Powered by Gemini) ===\033[0m\n"
                 f"\033[1;34mZiel-Distribution:\033[0m {distro.upper()}\n"
                 f"------------------------------------------------\n"
                 f"{clean_text}\n"
@@ -146,7 +148,7 @@ def run_genai(api_key, raw_data, distro, mode):
         except Exception as e:
             continue
     
-    # 4. Zweisprachige Eingabe & automatischer Git-Push!
+    # Zweisprachiges Eintragen und Git-Push
     if success and sys.stdout.isatty():
         try:
             with open("/dev/tty", "r") as tty:
@@ -163,30 +165,30 @@ def run_genai(api_key, raw_data, distro, mode):
                         if error_key not in db:
                             db[error_key] = {}
                         
-                        # Strukturierte, zweisprachige Speicherung
                         db[error_key][distro] = {
                             "comment_de": comment_de if comment_de else "Keine deutsche Beschreibung.",
                             "comment_en": comment_en if comment_en else "No English description."
                         }
                         
                         save_error_db(db)
-                        # Push den neuen Stand sofort ins Git-Repo!
                         git_push_update()
         except:
             pass
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Terremis Gemini CLI Debugger")
+    parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
     parser.add_argument("--distro", default="arch", choices=["arch", "gentoo", "ubuntu", "debian", "opensuse", "fedora"])
-    # Der neue Switch für Tester vs. Entwickler!
     parser.add_argument("--mode", default="tester", choices=["tester", "dev"], help="Wähle 'tester' für DE oder 'dev' für EN Ausgaben")
     args, unknown = parser.parse_known_args()
 
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        print("\033[1;31m[-] GEMINI_API_KEY fehlt!\033[0m")
+        print(f"\033[1;31m[-] Terremis {VERSION}: GEMINI_API_KEY fehlt!\033[0m")
         sys.exit(1)
         
     if not sys.stdin.isatty():
         setup_environment()
         run_genai(key, sys.stdin.read(), args.distro, args.mode)
+    else:
+        print(f"\033[1;36m[*] Terremis CLI-Debugger {VERSION} bereit.\033[0m")
+        print("Anwendung: dmesg | python3 gemini_bootstrap.py")
