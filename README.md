@@ -26,28 +26,41 @@ sudo pacman -Syu 2>&1 | tee /dev/tty | python3 ~/Downloads/gemini_bootstrap.py
 Die "Big Six" Support-Argumente
 Wenn du eine andere Distribution nutzt, hänge einfach das passende --distro Argument hinten an:
 
-# Für Gentoo Hardened:
+Für Gentoo Hardened:
 ```bash
 dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro gentoo
 ```
 
-# Für Debian GNU/Linux:
+Für Debian GNU/Linux:
 ```bash
 dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro debian
 ```
 
-# Für openSUSE:
+Für openSUSE:
 ```bash
 dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro opensuse
 ```
 
-# Für Ubuntu:
+Für Ubuntu:
 ```bash
 dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro ubuntu
 ```
 
-# Für Fedora:
+Für Fedora:
 ```bash
 dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro fedora
 ```
 
+# Beta
+
+Für den normalen Tester (Deutsche Ausgabe):
+´´´bash
+cat log.txt | python3 gemini_bootstrap.py --distro arch --mode tester
+´´´
+(Er sieht den Titel TERREMIS GLOBALES WISSENSARCHIV (TESTER DE) und bekommt die deutsche Erklärung, die du eingetippt hast).
+
+Für dich oder andere Entwickler (Englische Ausgabe):
+´´´bash
+cat log.txt | python3 gemini_bootstrap.py --distro arch --mode dev
+´´´
+(Es schaltet um auf DEVELOPER EN und zieht sich die englische Übersetzung für das GitHub-Issue oder die Fehlerbeseitigung im Code).
