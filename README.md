@@ -17,7 +17,7 @@ Am einfachsten ist es, die `gemini_bootstrap.py` direkt mit auf einen **Multiboo
 Nutzung & Argumente
 Du kannst jeden beliebigen Befehl oder Fehler-Output über eine Pipe direkt an das Skript übergeben. Standardmäßig ist das Skript auf Arch Linux eingestellt.
 
-# Standard-Nutzung (für Arch Linux):
+Standard-Nutzung (für Arch Linux):
 zb. Für Updates 
 ```bash
 sudo pacman -Syu 2>&1 | tee /dev/tty | python3 ~/Downloads/gemini_bootstrap.py
@@ -54,13 +54,13 @@ dein_befehl 2>&1 | python3 gemini_bootstrap.py --distro fedora
 # Beta
 
 Für den normalen Tester (Deutsche Ausgabe):
-´´´bash
+```bash
 cat log.txt | python3 gemini_bootstrap.py --distro arch --mode tester
-´´´
+```
 (Er sieht den Titel TERREMIS GLOBALES WISSENSARCHIV (TESTER DE) und bekommt die deutsche Erklärung, die du eingetippt hast).
 
 Für dich oder andere Entwickler (Englische Ausgabe):
-´´´bash
+```bash
 cat log.txt | python3 gemini_bootstrap.py --distro arch --mode dev
-´´´
+```
 (Es schaltet um auf DEVELOPER EN und zieht sich die englische Übersetzung für das GitHub-Issue oder die Fehlerbeseitigung im Code).
