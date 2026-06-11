@@ -28,8 +28,12 @@ def setup_environment():
 def git_pull():
     """Holt die neuesten Fehler-Kommentare der Community vor der Analyse."""
     try:
-        # Auch beim Pull erlauben wir SSH ohne interaktive Abfrage
-        subprocess.run(["git", "-C", SCRIPT_DIR, "pull"], env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["git", "-C", SCRIPT_DIR, "pull"], 
+            env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL
+        )
     except:
         pass
 
@@ -40,12 +44,33 @@ def git_push_update():
         subprocess.run(["git", "-C", SCRIPT_DIR, "add", DB_FILE], check=True)
         subprocess.run(["git", "-C", SCRIPT_DIR, "commit", "-m", f"chore: neuer Fehler-Fix im Wissensarchiv ({VERSION})"], check=True)
         
-        # Der sichere Push über SSH ohne Blockieren!
-        subprocess.run(["git", "-C", SCRIPT_DIR, "push"], env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, check=True)
-        
+        # Sicherer Push über SSH ohne interaktive Abfrage
+        subprocess.run(
+            ["git", "-C", SCRIPT_DIR, "push"], 
+            env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, 
+            check=True
+        )
         print("\033[1;32m[✓] Erfolgreich weltweit auf GitHub gepusht!\033[0m")
     except Exception as e:
         print(f"\033[1;31m[-] Git Push fehlgeschlagen: {e}\033[0m")
+
+def load_error_db():
+    """Lädt die Datenbank-Datei."""
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_error_db(db):
+    """Speichert die Datenbank-Datei."""
+    try:
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(db, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"[-] Fehler beim Speichern der Datenbank: {e}")
 
 def filter_critical_logs(raw_terminal_output):
     critical_lines = []
@@ -91,7 +116,11 @@ def run_genai(api_key, raw_data, distro, mode):
             f"\033[1;32mFIX / COMMENT:\033[0m\n{comment}\n"
             f"\033[1;33m================================================\033[0m\n"
         )
-        pydoc.pipepager(output_buffer, cmd='less -R')
+        # Zwingt less, die Tastatur direkt von /dev/tty zu lesen, damit das Scrollen trotz Pipe klappt
+        if sys.stdout.isatty():
+            pydoc.pipepager(output_buffer, cmd='less -R < /dev/tty')
+        else:
+            print(output_buffer)
         return
 
     # Ab zu Gemini, falls der Fehler neu ist
@@ -131,7 +160,7 @@ def run_genai(api_key, raw_data, distro, mode):
                 f"{clean_text}\n"
                 f"\033[1;33m================================================\033[0m\n"
             )
-            # Wir zwingen 'less', die Tastatur direkt von /dev/tty zu lesen, damit das Scrollen trotz Pipe klappt!
+            
             if sys.stdout.isatty():
                 pydoc.pipepager(output_buffer, cmd='less -R < /dev/tty')
             else:
@@ -145,30 +174,27 @@ def run_genai(api_key, raw_data, distro, mode):
         try:
             with open("/dev/tty", "r") as tty:
                 print("\n\033[1;36m[?] Neuen Fehler im globalen Repository speichern? (j/n):\033[0m ", end="", flush=True)
-                choice = tty.readline().strip().lower()
-                
-                if choice == 'j':
-                    # WICHTIG: Wir holen uns die Kommentare ohne Puffer-Schluckauf
+                if tty.readline().strip().lower() == 'j':
+                    
                     print("\033[1;32m-> [DE] Deutscher Kommentar für Tester:\033[0m")
                     comment_de = tty.readline().strip()
                     
                     print("\033[1;34m-> [EN] English comment for Developers:\033[0m")
                     comment_en = tty.readline().strip()
                     
-                    # Nur speichern, wenn auch wirklich Text eingegeben wurde!
                     if comment_de or comment_en:
                         if error_key not in db:
                             db[error_key] = {}
                         
                         db[error_key][distro] = {
-                            "comment_de": comment_de if comment_de else "Keine Beschreibung hinterlegt.",
-                            "comment_en": comment_en if comment_en else "No description available."
+                            "comment_de": comment_de if comment_de else "Keine deutsche Beschreibung.",
+                            "comment_en": comment_en if comment_en else "No English description."
                         }
                         
                         save_error_db(db)
                         git_push_update()
-        except Exception as e:
-            print(f"[-] Fehler bei der Eingabe: {e}")
+        except:
+            pass
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
