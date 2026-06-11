@@ -38,7 +38,6 @@ def git_pull():
 def git_push_update():
     """Pusht den neuen Fehler-Fix ins GitHub-Repo, falls Änderungen vorliegen."""
     try:
-        # Prüfen, ob sich die JSON-Datei überhaupt verändert hat
         status = subprocess.run(["git", "-C", SCRIPT_DIR, "status", "--porcelain", DB_FILE], capture_output=True, text=True)
         if not status.stdout.strip():
             print("[*] Keine Änderungen am Wissensarchiv festgestellt. Push übersprungen.")
@@ -48,7 +47,6 @@ def git_push_update():
         subprocess.run(["git", "-C", SCRIPT_DIR, "add", DB_FILE], check=True)
         subprocess.run(["git", "-C", SCRIPT_DIR, "commit", "-m", f"chore: neuer Fehler-Fix im Wissensarchiv ({VERSION})"], check=True)
         
-        # Sicherer Push über SSH ohne interaktive Abfrage
         subprocess.run(
             ["git", "-C", SCRIPT_DIR, "push"], 
             env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, 
@@ -99,7 +97,6 @@ def open_pager(text):
         print(text)
 
 def run_genai(api_key, raw_data, distro, mode):
-    # Vorab-Sync der Community-Datenbank
     git_pull()
     
     input_data = filter_critical_logs(raw_data)
@@ -125,4 +122,52 @@ def run_genai(api_key, raw_data, distro, mode):
             f"\n\033[1;33m=== {title} ===\033[0m\n"
             f"\033[1;34mZiel-Distribution:\033[0m {distro.upper()}\n"
             f"------------------------------------------------\n"
-            f"\033
+            f"\033[1;31mLog-Auszug:\033[0m\n{input_data}\n\n"
+            f"\033[1;32mFIX / COMMENT:\033[0m\n{comment}\n"
+            f"\033[1;33m================================================\033[0m\n"
+        )
+        open_pager(output_buffer)
+        return
+
+    # 2. Ab zu Gemini, falls der Fehler NEU ist
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError:
+        print("[-] google-genai Library fehlt.")
+        return
+    
+    client = genai.Client(api_key=api_key)
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+    
+    instructions = {
+        "arch": "Du bist der Terremis-Assistent. Analysiere diesen Fehler und gib eine prägnante Lösung für Arch Linux aus.",
+        "gentoo": "Du bist der Terremis-Assistent. Analysiere das Problem und gib eine optimierte Gentoo Hardened Lösung aus.",
+        "ubuntu": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine schnelle Lösung für Ubuntu aus.",
+        "debian": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine stabile Lösung für Debian aus.",
+        "opensuse": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine Lösung für openSUSE aus.",
+        "fedora": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine moderne Lösung für Fedora aus."
+    }
+    
+    config = types.GenerateContentConfig(system_instruction=instructions[distro], temperature=0.2)
+    success = False
+    
+    for m_id in models_to_try:
+        if success: break
+        try:
+            print(f"[*] [{VERSION}] Kontaktiere {m_id} für {distro.upper()}...")
+            # HIER WAR DER FEHLER - JETZT WIEDER SAUBER:
+            res = client.models.generate_content(model=m_id, contents=f"Log-Auszug:\n{input_data}", config=config)
+            
+            clean_text = res.text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
+            output_buffer = (
+                f"\n\033[1;33m=== TERREMIS KI ANALYSE ({VERSION} | Powered by Gemini) ===\033[0m\n"
+                f"\033[1;34mZiel-Distribution:\033[0m {distro.upper()}\n"
+                f"------------------------------------------------\n"
+                f"{clean_text}\n"
+                f"\033[1;33m================================================\033[0m\n"
+            )
+            open_pager(output_buffer)
+            success = True
+        except Exception as e:
+            continue
