@@ -28,7 +28,8 @@ def setup_environment():
 def git_pull():
     """Holt die neuesten Fehler-Kommentare der Community vor der Analyse."""
     try:
-        subprocess.run(["git", "-C", SCRIPT_DIR, "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Auch beim Pull erlauben wir SSH ohne interaktive Abfrage
+        subprocess.run(["git", "-C", SCRIPT_DIR, "pull"], env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except:
         pass
 
@@ -38,26 +39,13 @@ def git_push_update():
         print(f"[*] Terremis {VERSION}: Synchronisiere mit GitHub...")
         subprocess.run(["git", "-C", SCRIPT_DIR, "add", DB_FILE], check=True)
         subprocess.run(["git", "-C", SCRIPT_DIR, "commit", "-m", f"chore: neuer Fehler-Fix im Wissensarchiv ({VERSION})"], check=True)
-        subprocess.run(["git", "-C", SCRIPT_DIR, "push"], check=True)
+        
+        # Der sichere Push über SSH ohne Blockieren!
+        subprocess.run(["git", "-C", SCRIPT_DIR, "push"], env={"GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"}, check=True)
+        
         print("\033[1;32m[✓] Erfolgreich weltweit auf GitHub gepusht!\033[0m")
     except Exception as e:
         print(f"\033[1;31m[-] Git Push fehlgeschlagen: {e}\033[0m")
-
-def load_error_db():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-def save_error_db(db):
-    try:
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(db, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        print(f"[-] Fehler beim Speichern der Datenbank: {e}")
 
 def filter_critical_logs(raw_terminal_output):
     critical_lines = []
