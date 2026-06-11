@@ -65,4 +65,4 @@ cat log.txt | python3 gemini_bootstrap.py --distro arch --mode dev
 ```
 (Es schaltet um auf DEVELOPER EN und zieht sich die englische Übersetzung für das GitHub-Issue oder die Fehlerbeseitigung im Code).
 
-Beta debian testing/Unstable mint hinzugefügt.
+Beta debian testing/unstable Linux Mint hinzugefügt.
