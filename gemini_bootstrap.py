@@ -145,6 +145,8 @@ def run_genai(api_key, raw_data, distro, mode):
         "gentoo": "Du bist der Terremis-Assistent. Analysiere das Problem und gib eine optimierte Gentoo Hardened Lösung aus.",
         "ubuntu": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine schnelle Lösung für Ubuntu aus.",
         "debian": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine stabile Lösung für Debian aus.",
+        "debian-testing": "Du bist der Terremis-Assistent. Analysiere den Fehler für Debian Testing/Unstable (Rolling). Achte auf Paket-Sperren oder unvollständige Abhängigkeiten.",
+        "mint": "Du bist der Terremis-Assistent. Analysiere den Fehler für Linux Mint. Berücksichtige die Ubuntu/Debian-Basis und die Cinnamon/MATE-Desktop-Umgebung.",
         "opensuse": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine Lösung für openSUSE aus.",
         "fedora": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine moderne Lösung für Fedora aus."
     }
@@ -200,7 +202,7 @@ def run_genai(api_key, raw_data, distro, mode):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
-    parser.add_argument("--distro", default="arch", choices=["arch", "gentoo", "ubuntu", "debian", "opensuse", "fedora"])
+    parser.add_argument("--distro", default="arch", choices=["arch", "gentoo", "ubuntu", "debian","debian-testing", "mint", "opensuse", "fedora"])
     parser.add_argument("--mode", default="tester", choices=["tester", "dev"], help="Wähle 'tester' für DE oder 'dev' für EN Ausgaben")
     args, unknown = parser.parse_known_args()
 
