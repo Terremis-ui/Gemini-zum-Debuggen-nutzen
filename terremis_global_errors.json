@@ -1,1 +1,8 @@
-{}
+{
+    "ERROR:failedtoopenmariadbconnection:accessdeniedforuserroot": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
+    }
+}
