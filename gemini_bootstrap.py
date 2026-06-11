@@ -118,10 +118,14 @@ def run_genai(api_key, raw_data, distro, mode):
         )
         # Zwingt less, die Tastatur direkt von /dev/tty zu lesen, damit das Scrollen trotz Pipe klappt
         if sys.stdout.isatty():
-            pydoc.pipepager(output_buffer, cmd='less -R < /dev/tty')
+            try:
+                # Wir öffnen 'less' direkt und leiten die Tastatur über das echte Terminal um
+                with open("/dev/tty", "r") as tty:
+                    subprocess.run(["less", "-R"], input=output_buffer, text=True, stdin=tty)
+            except Exception as e:
+                print(output_buffer)
         else:
             print(output_buffer)
-        return
 
     # Ab zu Gemini, falls der Fehler neu ist
     try:
