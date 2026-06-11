@@ -171,3 +171,47 @@ def run_genai(api_key, raw_data, distro, mode):
             success = True
         except Exception as e:
             continue
+            # 3. Zweisprachiges Eintragen und Git-Push (Nur bei neuen Fehlern!)
+    if success and sys.stdout.isatty():
+        try:
+            with open("/dev/tty", "r") as tty:
+                print("\n\033[1;36m[?] Neuen Fehler im globalen Repository speichern? (j/n):\033[0m ", end="", flush=True)
+                if tty.readline().strip().lower() == 'j':
+                    
+                    print("\033[1;32m-> [DE] Deutscher Kommentar für Tester:\033[0m")
+                    comment_de = tty.readline().strip()
+                    
+                    print("\033[1;34m-> [EN] English comment for Developers:\033[0m")
+                    comment_en = tty.readline().strip()
+                    
+                    if comment_de or comment_en:
+                        if error_key not in db:
+                            db[error_key] = {}
+                        
+                        db[error_key][distro] = {
+                            "comment_de": comment_de if comment_de else "Keine deutsche Beschreibung.",
+                            "comment_en": comment_en if comment_en else "No English description."
+                        }
+                        
+                        save_error_db(db)
+                        git_push_update()
+        except Exception as e:
+            print(f"[-] Fehler bei der Eingabe: {e}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
+    parser.add_argument("--distro", default="arch", choices=["arch", "gentoo", "ubuntu", "debian", "opensuse", "fedora"])
+    parser.add_argument("--mode", default="tester", choices=["tester", "dev"], help="Wähle 'tester' für DE oder 'dev' für EN Ausgaben")
+    args, unknown = parser.parse_known_args()
+
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        print(f"\033[1;31m[-] Terremis {VERSION}: GEMINI_API_KEY fehlt!\033[0m")
+        sys.exit(1)
+        
+    if not sys.stdin.isatty():
+        setup_environment()
+        run_genai(key, sys.stdin.read(), args.distro, args.mode)
+    else:
+        print(f"\033[1;36m[*] Terremis CLI-Debugger {VERSION} bereit.\033[0m")
+        print("Anwendung: dmesg | python3 gemini_bootstrap.py")
