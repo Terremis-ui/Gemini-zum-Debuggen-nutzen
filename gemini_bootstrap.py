@@ -143,7 +143,11 @@ def run_genai(api_key, raw_data, distro, mode):
                 f"{clean_text}\n"
                 f"\033[1;33m================================================\033[0m\n"
             )
-            pydoc.pipepager(output_buffer, cmd='less -R')
+            # Wir zwingen 'less', die Tastatur direkt von /dev/tty zu lesen, damit das Scrollen trotz Pipe klappt!
+            if sys.stdout.isatty():
+                pydoc.pipepager(output_buffer, cmd='less -R < /dev/tty')
+            else:
+                print(output_buffer)
             success = True
         except Exception as e:
             continue
@@ -153,27 +157,30 @@ def run_genai(api_key, raw_data, distro, mode):
         try:
             with open("/dev/tty", "r") as tty:
                 print("\n\033[1;36m[?] Neuen Fehler im globalen Repository speichern? (j/n):\033[0m ", end="", flush=True)
-                if tty.readline().strip().lower() == 'j':
-                    
+                choice = tty.readline().strip().lower()
+                
+                if choice == 'j':
+                    # WICHTIG: Wir holen uns die Kommentare ohne Puffer-Schluckauf
                     print("\033[1;32m-> [DE] Deutscher Kommentar für Tester:\033[0m")
                     comment_de = tty.readline().strip()
                     
                     print("\033[1;34m-> [EN] English comment for Developers:\033[0m")
                     comment_en = tty.readline().strip()
                     
+                    # Nur speichern, wenn auch wirklich Text eingegeben wurde!
                     if comment_de or comment_en:
                         if error_key not in db:
                             db[error_key] = {}
                         
                         db[error_key][distro] = {
-                            "comment_de": comment_de if comment_de else "Keine deutsche Beschreibung.",
-                            "comment_en": comment_en if comment_en else "No English description."
+                            "comment_de": comment_de if comment_de else "Keine Beschreibung hinterlegt.",
+                            "comment_en": comment_en if comment_en else "No description available."
                         }
                         
                         save_error_db(db)
                         git_push_update()
-        except:
-            pass
+        except Exception as e:
+            print(f"[-] Fehler bei der Eingabe: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
