@@ -4,5 +4,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "StartingArenaSeason...StartingBattlegroundSystem>>Loaded11battlegroundsin1msStartingOutdoorPvPSystem>>Loaded6outdoorPvPdefinitionsin0msStartingBattlefieldSystem>>Loaded1battlefieldsin49msLoadingTransports...>>Spawned20continenttransportsin73msLoadingWardenChecks...LoadingWardenActionOverrides...Deletingexpiredbans...Initializingquestresettimes...Calculaterandombattlegroundresettime...Calculatedeletionofoldcalendareventstime...Calculateguildlimitation(s)resettime...Worldinitializedin0minutes6secondsStartingupanti-freezethread(60secondsmaxstucktime)...TrinityCorerev.12e1f20d2e002026-05-3121:42:43+0700(npcbots_3.3.5branch)(Linux,x86_64,RelWithDebInfo,Static)(worldserver-daemon)ready...Haltingprocess...": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
