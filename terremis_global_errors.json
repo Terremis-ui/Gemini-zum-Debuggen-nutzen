@@ -16,5 +16,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "\u001b[1;31mWarning\u001b[0m:\u001b[1;37mPIDfileexists,probablyanotherLynisprocessisrunning.\u001b[0m\u001b[1;37m*\u001b[0mSometestsmightfailsilentlyorgivedifferentresults\u001b[2C-Loggingfailedloginattempts\u001b[28C[\u001b[1;33mDEAKTIVIERT\u001b[0m]\u001b[30;43m[WARNING]\u001b[0m:TestPKGS-7310hadalongexecution:30.319004seconds\u001b[0m\u001b[30;43m[WARNING]\u001b[0m:TestNETW-2600hadalongexecution:11.516347seconds\u001b[0m\u001b[8C-Dockerinfooutput(warnings)\u001b[22C[\u001b[1;32mNICHTS\u001b[0m]\u001b[4C-net.ipv4.icmp_ignore_bogus_error_responses(exp:1)\u001b[4C[\u001b[1;32mOK\u001b[0m]\u001b[1;31mWarnings\u001b[0m(1):\u001b[1;33m*\u001b[0mRunpwckmanuallyandcorrectanyerrorsinthepasswordfile[AUTH-9228]": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
