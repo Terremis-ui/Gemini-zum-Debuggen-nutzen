@@ -5,6 +5,7 @@ import site
 import importlib
 import argparse
 import json
+import re
 
 # ==========================================
 # TERREMIS GLOBAL CONFIG & VERSIONING
@@ -12,6 +13,15 @@ import json
 VERSION = "v1.0.1_Beta"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(SCRIPT_DIR, "terremis_global_errors.json")
+
+def clean_ansi_codes(text):
+    # Filtert alle \u001b[...m und Steuerzeichen sauber heraus
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
+
+# Vor dem Senden an Gemini anwenden:
+unsauberer_log = 'Your raw string with \\u001b[1;31m...'
+sauberer_text = clean_ansi_codes(unsauberer_log)
 
 def setup_environment():
     try:
