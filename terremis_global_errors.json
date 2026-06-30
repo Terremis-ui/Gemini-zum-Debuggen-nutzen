@@ -28,5 +28,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "==>WARNING:Possiblymissingfirmwareformodule:'qat_6xxx'": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
