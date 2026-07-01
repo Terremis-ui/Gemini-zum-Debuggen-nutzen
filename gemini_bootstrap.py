@@ -227,3 +227,27 @@ if __name__ == "__main__":
     else:
         print(f"\033[1;36m[*] Terremis CLI-Debugger {VERSION} bereit.\033[0m")
         print("Anwendung: dmesg | python3 gemini_bootstrap.py")
+
+def validate_firmware_package(module_name):
+    # Extrahiere den reinen Namen (z.B. qat_6xxx -> qat_6xxx.bin)
+    filename = f"{module_name}.bin"
+    
+    # Prüfe, ob pacman die Datei in den Repos kennt
+    result = subprocess.run(["pacman", "-Fq", filename], capture_output=True, text=True)
+    
+    if result.stdout.strip():
+        # Paket wurde gefunden!
+        package_name = result.stdout.split()[0]
+        return f"sudo pacman -S {package_name}"
+    else:
+        # Nirvana-Fall (wie bei qat_6xxx)
+        return None
+
+# In deiner Hauptschleife, wenn "WARNING: Possibly missing firmware" erkannt wird:
+module = "qat_6xxx" # Aus dem RegEx-Match der pacman-Ausgabe
+fix_command = validate_firmware_package(module)
+
+if fix_command:
+    print(f"Lösung: Installiere das Paket mit:\n{fix_command}")
+else:
+    print(f"Info: Das Modul '{module}' ist im Kernel aktiv, aber keine Firmware in den Arch-Repos verfügbar. Kann ignoriert werden, da keine entsprechende Server-Hardware verbaut ist.")
