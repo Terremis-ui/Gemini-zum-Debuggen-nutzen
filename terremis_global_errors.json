@@ -34,5 +34,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "Jul0622:06:03archsystemd[1]:wg-quick@wg0.service:Mainprocessexited,code=exited,status=1/FAILUREJul0622:06:03archsystemd[1]:wg-quick@wg0.service:Failedwithresult'exit-code'.░░Subject:Unitfailed░░Theunitwg-quick@wg0.servicehasenteredthe'failed'statewithresult'exit-code'.Jul0622:06:03archsystemd[1]:FailedtostartWireGuardviawg-quick(8)forwg0.░░Subject:Astartjobforunitwg-quick@wg0.servicehasfailed░░Astartjobforunitwg-quick@wg0.servicehasfinishedwithafailure.░░Thejobidentifieris3607andthejobresultisfailed.Jul0622:06:17archsystemd[1]:wg-quick@wg0.service:Mainprocessexited,code=exited,status=1/FAILUREJul0622:06:17archsystemd[1]:wg-quick@wg0.service:Failedwithresult'exit-code'.░░Subject:Unitfailed░░Theunitwg-quick@wg0.servicehasenteredthe'failed'statewithresult'exit-code'.Jul0622:06:17archsystemd[1]:FailedtostartWireGuardviawg-quick(8)forwg0.░░Subject:Astartjobforunitwg-quick@wg0.servicehasfailed░░Astartjobforunitwg-quick@wg0.servicehasfinishedwithafailure.░░Thejobidentifieris3772andthejobresultisfailed.": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
