@@ -40,5 +40,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "Fehler:KonnteDatei'extra.db'nichtvonde.mirrors.cicku.meübertragen:Operationtooslow.Lessthan1bytes/sectransferredthelast10seconds": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
