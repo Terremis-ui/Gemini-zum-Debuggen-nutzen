@@ -58,5 +58,11 @@
             "comment_de": "j",
             "comment_en": "j"
         }
+    },
+    "[#]iplinkadddevhelsinkitypewireguard[#]wgaddconfhelsinki/dev/fd/63[#]ip-4addressadd10.66.66.3/32devhelsinki[#]ip-6addressaddfd42:42:42::3/128devhelsinki[#]iplinksetmtu1420updevhelsinki[#]resolvconf-ahelsinki-m0-xresolvconf:signaturemismatch:/etc/resolv.confresolvconf:run`resolvconf-u`toupdate[#]iplinkdeletedevhelsinki": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j"
+        }
     }
 }
