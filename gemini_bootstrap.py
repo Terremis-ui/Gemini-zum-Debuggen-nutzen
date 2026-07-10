@@ -137,80 +137,9 @@ def filter_critical_logs(raw_terminal_output):
             
     if critical_lines:
         return "\n".join(critical_lines[-30:])
-    else:
-        return "\n".join(raw_terminal_output.splitlines()[-20:])
-
-def open_pager(text):
-    if sys.stdout.isatty():
-        try:
-            with open("/dev/tty", "r") as tty:
-                subprocess.run(["less", "-R"], input=text, text=True, stdin=tty)
-        except:
-            print(text)
-    else:
-        print(text)
-
-def create_github_issue(error_log, comment_de, comment_en, distro):
-    """Erstellt einen vorausgefüllten GitHub-Issue-Link für Tester."""
-    issue_title = f"[Terremis Error] Neuer Fehler in {distro.upper()}"
-    issue_body = (
-        f"### Terremis Debugger Report ({VERSION})\n\n"
-        f"**Distribution:** {distro.upper()}\n\n"
-        f"#### Kritischer Log-Auszug:\n"
-        f"```text\n{error_log}\n```\n\n"
-        f"#### Vorgeschlagene Beschreibung (DE):\n> {comment_de}\n\n"
-        f"#### Suggested Description (EN):\n> {comment_en}\n"
-    )
     
-    # URL-safe encoden
-    title_encoded = urllib.parse.quote(issue_title)
-    body_encoded = urllib.parse.quote(issue_body)
-    
-    url = f"{GITHUB_REPO_URL}/issues/new?title={title_encoded}&body={body_encoded}"
-    
-    print("\n\033[1;36m[*] Öffne GitHub im Browser, um den Issue zu erstellen...\033[0m")
-    webbrowser.open(url)
-
-def optimize_error_db(api_key):
-    """Liest die JSON-Datenbank ein und lässt Gemini das Format optimieren."""
-    db = load_error_db()
-    if not db:
-        print("[-] Datenbank leer oder nicht gefunden.")
-        return
-
-    print(f"[*] Starte globale Optimierung der Datenbank mit Gemini...")
-    from google import genai
-    from google.genai import types
-    
-    client = genai.Client(api_key=api_key)
-    
-    system_instruction = (
-        "Du bist ein Datenbank-Optimierer für das Terremis-Archiv. "
-        "Erhalte einen Fehler-Eintrag und strukturiere ihn in sauberes JSON. "
-        "Ergänze fehlende Übersetzungen (DE/EN), korrigiere Rechtschreibfehler "
-        "und extrahiere falls möglich einen konkreten Befehl als 'suggested_fix'."
-    )
-    config = types.GenerateContentConfig(
-        system_instruction=system_instruction, 
-        temperature=0.1,
-        response_mime_type="application/json"
-    )
-
-    optimized_db = {}
-    for error_hash, distros in db.items():
-        optimized_db[error_hash] = {}
-        for distro, data in distros.items():
-            print(f"[*] Optimiere Eintrag für {distro}...")
-            prompt = f"Strukturiere diesen Eintrag: {json.dumps(data)}"
-            try:
-                res = client.models.generate_content(model='gemini-2.5-flash', contents=prompt, config=config)
-                optimized_db[error_hash][distro] = json.loads(res.text)
-            except Exception as e:
-                print(f"[-] Fehler bei Eintrag {error_hash}: {e}")
-                optimized_db[error_hash][distro] = data
-
-    save_error_db(optimized_db)
-    print("\033[1;32m[✓] Datenbank erfolgreich optimiert und sauber formatiert!\033[0m")
+    # Wenn alles glattlief, geben wir None zurück, statt Alibi-Zeilen zu senden
+    return None
 
 def run_genai(api_key, raw_data, distro, mode):
     git_pull()
@@ -219,8 +148,9 @@ def run_genai(api_key, raw_data, distro, mode):
     clean_raw_data = clean_ansi_codes(raw_data)
     input_data = filter_critical_logs(clean_raw_data)
     
-    if not input_data.strip():
-        print(f"🎉 Terremis {VERSION}: Alles sauber! Keine kritischen Fehler gefunden.")
+    # Wenn input_data None ist, war das Update zu 100% erfolgreich!
+    if not input_data:
+        print(f"\n\033[1;32m🎉 Terremis {VERSION}: Alles sauber! Keine Fehler im Log gefunden. System läuft stabil.\033[0m")
         return
     
     db = load_error_db()
@@ -330,27 +260,3 @@ def run_genai(api_key, raw_data, distro, mode):
                         
         except Exception as e:
             print(f"[-] Fehler bei der Eingabe: {e}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=f"Terremis Gemini CLI Debugger {VERSION}")
-    parser.add_argument("--distro", default="arch", choices=["arch", "gentoo", "ubuntu", "debian","debian-testing", "mint", "opensuse", "fedora"])
-    parser.add_argument("--mode", default="tester", choices=["tester", "dev"], help="Wähle 'tester' für DE oder 'dev' für EN Ausgaben")
-    parser.add_argument("--optimize", action="store_true", help="Optimiert und bereinigt die globale JSON-Datenbank")
-    args, unknown = parser.parse_known_args()
-
-    key = os.getenv("GEMINI_API_KEY")
-    if not key:
-        print(f"\033[1;31m[-] Terremis {VERSION}: GEMINI_API_KEY fehlt!\033[0m")
-        sys.exit(1)
-        
-    if args.optimize:
-        setup_environment()
-        optimize_error_db(key)
-        sys.exit(0)
-        
-    if not sys.stdin.isatty():
-        setup_environment()
-        run_genai(key, sys.stdin.read(), args.distro, args.mode)
-    else:
-        print(f"\033[1;36m[*] Terremis CLI-Debugger {VERSION} bereit.\033[0m")
-        print("Anwendung: dmesg | python3 gemini_bootstrap.py")
