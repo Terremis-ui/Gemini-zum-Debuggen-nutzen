@@ -69,10 +69,3 @@
             "suggested_fix": "Kein akuter Handlungsbedarf, da die Sandbox wie gewollt isoliert. Falls Chromium abstürzt, das Firejail-Profil anpassen oder `MemoryInfra`-Verbindungen explizit erlauben."
         }
     },
-    "NachinKonfliktstehendenPaketenwirdgesucht…Pakete(1)libmicrohttpd-1.0.6-1GesamtgrößedesDownloads:0,28MiBGesamtgrößederinstalliertenPakete:0,61MiBGrößendifferenzderAktualisierung:0,01MiB::Installationfortsetzen?[J/n]::Paketewerdenempfangen…libmicrohttpd-1.0.6-1-x86_64wirdheruntergeladen…Schlüsselbundwirdgeprüft…Paketintegritätwirdgeprüft…Paket-Dateienwerdengeladen…AufDateikonfliktewirdgeprüft…VerfügbarerFestplattenspeicherwirdermittelt…::Paketänderungenwerdenverarbeitet…libmicrohttpdwirdaktualisiert…::Post-transaction-Hookswerdengestartet…(1/2)ArmingConditionNeedsUpdate...(2/2)Updatingtheinfodirectoryfile...": {
-        "arch": {
-            "comment_de": "j",
-            "comment_en": "j"
-        }
-    }
-}
