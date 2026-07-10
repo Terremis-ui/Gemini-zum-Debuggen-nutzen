@@ -8,6 +8,9 @@ import json
 import re
 import urllib.parse
 import webbrowser
+import requests
+
+from google import genai
 
 # ==========================================
 # TERREMIS GLOBAL CONFIG & VERSIONING
@@ -16,6 +19,48 @@ VERSION = "v1.1.0_Beta"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(SCRIPT_DIR, "terremis_global_errors.json")
 GITHUB_REPO_URL = "https://github.com/Terremis-ui/Gemini-zum-Debuggen-nutzen"
+
+# --- HYBRIDE KI-KONFIGURATION ---
+OLLAMA_URL = os.environ.get("OLLAMA_API_URL", "http://10.66.66.1:11434/api/generate")
+LOCAL_MODEL = "gemma2-alex"
+
+client = genai.Client()
+
+def ask_local_gemma(prompt, system_instruction):
+    """Fragt dein lokales Gemma-Modell mit schnellem Verbindungs-Timeout (Graceful Fallback)."""
+    # Wir übergeben die System-Anweisung im Prompt, da Ollama-Modelle das im Basis-Prompt am besten verstehen
+    full_prompt = f"System-Anweisung: {system_instruction}\n\nLog-Auszug:\n{prompt}"
+    payload = {
+        "model": LOCAL_MODEL,
+        "prompt": full_prompt,
+        "stream": False
+    }
+    try:
+        # 2 Sekunden Connect-Timeout für Tester außerhalb deines Tunnels, 120s für die Generierung
+        response = requests.post(OLLAMA_URL, json=payload, timeout=(2, 120))
+        if response.status_code == 200:
+            return response.json().get("response", "")
+        return None
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        # Tester ist außerhalb deines Netzes -> Gemma wird lautlos übersprungen
+        return None
+
+def ask_cloud_gemini(model_id, prompt, system_instruction, gemma_context=""):
+    """Fragt die Google Cloud an, falls Gemma Hilfe braucht oder offline ist."""
+    from google.genai import types
+    
+    config = types.GenerateContentConfig(system_instruction=system_instruction, temperature=0.2)
+    
+    full_prompt = f"Log-Auszug:\n{prompt}"
+    if gemma_context:
+        full_prompt = (
+            f"Unsere lokale KI (Gemma) hat folgendes Vorwissen geliefert, brauchte aber Unterstützung:\n"
+            f"--- Context ---\n{gemma_context}\n---------------\n\n"
+            f"Bitte optimiere und vervollständige die Lösung für den Nutzer.\n{full_prompt}"
+        )
+        
+    res = client.models.generate_content(model=model_id, contents=full_prompt, config=config)
+    return res.text
 
 def clean_ansi_codes(text):
     """Filtert alle \u001b[...m und Steuerzeichen sauber heraus."""
@@ -202,17 +247,7 @@ def run_genai(api_key, raw_data, distro, mode):
         open_pager(output_buffer)
         return
 
-    # 2. KI-Analyse für neue Fehler
-    try:
-        from google import genai
-        from google.genai import types
-    except ImportError:
-        print("[-] google-genai Library fehlt.")
-        return
-    
-    client = genai.Client(api_key=api_key)
-    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
-    
+    # 2. Hybride KI-Analyse für neue Fehler
     instructions = {
         "arch": "Du bist der Terremis-Assistent. Analysiere diesen Fehler und gib eine prägnante Lösung für Arch Linux aus.",
         "gentoo": "Du bist der Terremis-Assistent. Analysiere das Problem und gib eine optimierte Gentoo Hardened Lösung aus.",
@@ -224,30 +259,49 @@ def run_genai(api_key, raw_data, distro, mode):
         "fedora": "Du bist der Terremis-Assistent. Analysiere den Fehler und gib eine moderne Lösung für Fedora aus."
     }
     
-    config = types.GenerateContentConfig(system_instruction=instructions[distro], temperature=0.2)
-    success = False
+    current_instruction = instructions.get(distro, "Du bist der Terremis-Assistent. Analysiere diesen Fehler.")
     
-    for m_id in models_to_try:
-        if success: break
-        try:
-            print(f"[*] [{VERSION}] Kontaktiere {m_id} für {distro.upper()}...")
-            res = client.models.generate_content(model=m_id, contents=f"Log-Auszug:\n{input_data}", config=config)
-            
-            clean_text = res.text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
-            output_buffer = (
-                f"\n\033[1;33m=== TERREMIS KI ANALYSE ({VERSION} | Powered by Gemini) ===\033[0m\n"
-                f"\033[1;34mZiel-Distribution:\033[0m {distro.upper()}\n"
-                f"------------------------------------------------\n"
-                f"{clean_text}\n"
-                f"\033[1;33m================================================\033[0m\n"
-            )
-            open_pager(output_buffer)
-            success = True
-        except Exception as e:
-            continue
+    print(f"🤖 [Lokal] Prüfe Verfügbarkeit von {LOCAL_MODEL}...")
+    gemma_response = ask_local_gemma(input_data, current_instruction)
+    
+    final_text = ""
+    
+    if gemma_response:
+        # Prüfen, ob Gemma eskalieren möchte
+        trigger_words = ["großen bruder", "gemini flash", "übersteigt meine", "kapazitäten", "kaskade"]
+        if any(word in gemma_response.lower() for word in trigger_words):
+            print(f"\n⚡ [Kaskade] Gemma eskaliert zu Gemini Cloud für {distro.upper()}...\n")
+            final_text = ask_cloud_gemini('gemini-2.5-flash', input_data, current_instruction, gemma_context=gemma_response)
+        else:
+            print(f"\n✅ [Lokal] Gemma hat die Analyse direkt gelöst.\n")
+            final_text = gemma_response
+    else:
+        # Wenn der Tester nicht in deinem Netzwerk ist oder Gemma offline ist -> Direkt-Routing
+        print("🌐 [Info] Lokale KI nicht erreichbar (Tester-Modus). Weiche aus auf Cloud-Routing...\n")
+        models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+        
+        for m_id in models_to_try:
+            try:
+                print(f"[*] [{VERSION}] Kontaktiere {m_id} für {distro.upper()}...")
+                final_text = ask_cloud_gemini(m_id, input_data, current_instruction)
+                if final_text:
+                    break
+            except Exception:
+                continue
+
+    if final_text:
+        clean_text = final_text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
+        output_buffer = (
+            f"\n\033[1;33m=== TERREMIS KI ANALYSE ({VERSION} | Powered by Hybrid AI) ===\033[0m\n"
+            f"\033[1;34mZiel-Distribution:\033[0m {distro.upper()}\n"
+            f"------------------------------------------------\n"
+            f"{clean_text}\n"
+            f"\033[1;33m================================================\033[0m\n"
+        )
+        open_pager(output_buffer)
 
     # 3. Interaktives Speichern / Issue-Erstellung
-    if success and sys.stdout.isatty():
+    if final_text and sys.stdout.isatty():
         try:
             with open("/dev/tty", "r") as tty:
                 print("\n\033[1;36m[?] Neuen Fehler im globalen Repository melden/speichern? (j/n):\033[0m ", end="", flush=True)
@@ -290,7 +344,6 @@ if __name__ == "__main__":
         sys.exit(1)
         
     if args.optimize:
-        optimize_environment = True
         setup_environment()
         optimize_error_db(key)
         sys.exit(0)
