@@ -142,9 +142,14 @@ def save_error_db(db):
 
 def filter_critical_logs(raw_terminal_output):
     critical_lines = []
-    keywords = ["error", "fail", "failed", "warning", "not found", "invalid", "denied", "conflict", "verletzt", "panic", "segfault", "broken", "fehler"]
+    # "e:" fängt die typischen Debian/Apt Fehlerzeilen "E: ..." sauber ab
+    keywords = ["error", "fail", "failed", "warning", "not found", "invalid", "denied", "conflict", "verletzt", "panic", "segfault", "broken", "fehler", "e:"]
     
     for line in raw_terminal_output.splitlines():
+        # Ignoriere den kosmetischen Apt-Hinweis über das CLI Interface
+        if "stable cli interface" in line.lower():
+            continue
+            
         if any(kw in line.lower() for kw in keywords):
             critical_lines.append(line)
             
