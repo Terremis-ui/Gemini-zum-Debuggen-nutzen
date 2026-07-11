@@ -288,7 +288,18 @@ def run_genai(api_key, raw_data, distro, mode):
         except Exception as e:
             print(f"[-] Fehler bei der Eingabe/Speicherung: {e}")
 
-# Dummy argparse Block zum Testen des Skriptaufrufs
 if __name__ == "__main__":
-    # Falls das Skript direkt aufgerufen wird (normalerweise via CLI Argumenten befeuert)
-    pass
+    parser = argparse.ArgumentParser(description="Terremis Hybrid AI Bootstrapper")
+    parser.add_stdio = True  # Erlaubt das Lesen von stdin
+    parser.add_argument("--distro", type=str, default="arch", help="Ziel-Distribution (default: arch)")
+    parser.add_argument("--mode", type=str, default="tester", help="Modus: dev oder tester (default: tester)")
+    args = parser.parse_args()
+
+    # Holt den API-Key aus der Umgebungsvariable
+    api_key = os.environ.get("GEMINI_API_KEY")
+    
+    # Liest den kompletten Stream aus der Terminal-Pipe
+    raw_data = sys.stdin.read()
+    
+    # Startet die Zähler-Logik und die KI-Analyse
+    run_genai(api_key, raw_data, args.distro, args.mode)
