@@ -32,6 +32,8 @@ Für Debian GNU/Linux:
 ```bash 
 alias update='sudo apt-get update 2>&1 | tee /dev/tty | python3 ~/Gemini-zum-Debuggen-nutzen/gemini_bootstrap.py --distro debian && sudo apt-get dist-upgrade -y 2>&1 | tee /dev/tty | python3 ~/Gemini-zum-Debuggen-nutzen/gemini_bootstrap.py --distro debian'
 ```
+Passe die Pfade für dein System an. 
+
 
 🎛️ Die "Big Six" Support-Argumente
 Wenn du eine andere Distribution reparierst, hänge einfach das passende --distro Argument hinten an:
