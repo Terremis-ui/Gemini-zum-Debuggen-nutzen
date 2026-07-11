@@ -1,71 +1,30 @@
 {
-    "Fontconfig warning: invalid attribute 'xsi:nil' / invalid constant used: ui-serif, ui-monospace, ui-rounded, fangsong": {
+    "Fehler:KeineDatenbankkonntesynchronisiertwerden(KannDatenbanknichtsperren)": {
         "arch": {
-            "error_id": "TERREMIS-FONT-001",
-            "severity": "WARNING",
-            "component": "Fontconfig",
-            "message_de": "Veraltete oder ungültige Attribute und Konstanten in den Fontconfig-Konfigurationsdateien unter /usr/share/fontconfig/conf.avail/. Dies tritt häufig nach Upgrades auf, wenn Anwendungen wie GitHub Desktop oder Chromium ältere Syntax nutzen.",
-            "message_en": "Deprecated or invalid attributes and constants inside Fontconfig configuration files at /usr/share/fontconfig/conf.avail/. Commonly occurs after system upgrades when Electron/Chromium apps parse older font rules.",
-            "suggested_fix": "sudo pacman -Syu fontconfig --needed && fc-cache -fv"
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
         }
     },
-    "SmartAIMgr::LoadSmartAIFromDB: Entry SourceType, Event, LinkEvent not found or invalid": {
+    "==>WARNING:Possiblymissingfirmwareformodule:'qat_6xxx'": {
         "arch": {
-            "error_id": "TERREMIS-WOW-001",
-            "severity": "ERROR",
-            "component": "WorldOfWarcraft_Server",
-            "message_de": "Kritische Integritätsfehler in der MariaDB-Datenbank deines TrinityCore/AzerothCore-Servers. Die Tabelle 'smart_scripts' enthält ungültige Event-Links oder fehlerhafte KI-Einträge für NPCs/Objekte.",
-            "message_en": "Database integrity errors in the World of Warcraft server database (smart_scripts table). Core event-links or SmartAI source events are missing or misconfigured in MariaDB.",
-            "suggested_fix": "Überprüfe die betroffenen Script-IDs (z.B. 14909, 25456) in der Tabelle `smart_scripts` oder spiele die neuesten SQL-Updates deines Core-Repositories ein."
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
         }
     },
-    "Warning: PID file exists, probably another Lynis process is running. Test PKGS-7310 had a long execution": {
+    "GesamtgrößederinstalliertenPakete:612,10MiB": {
         "arch": {
-            "error_id": "TERREMIS-LYNIS-001",
-            "severity": "LOW",
-            "component": "Security_Audit",
-            "message_de": "Lynis hat ein verwaistes PID-File entdeckt, was auf einen abgebrochenen vorherigen Scan hindeutet. Zudem haben Paket- und Netzwerkanalysen (PKGS-7310) ungewöhnlich lange gedauert.",
-            "message_en": "Lynis detected a stale PID file from a previous or interrupted scan. Additionally, specific auditing modules (like package checks) took an unusually long time to execute.",
-            "suggested_fix": "sudo rm -f /var/run/lynis.pid && sudo pwck"
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
         }
     },
-    "WARNING: Possibly missing firmware for module: 'qat_6xxx'": {
+    "Jul1122:10:47archfirejail[5776]:[5:26:0711/221047.155497:ERROR:google_apis/gcm/engine/registration_request.cc:291]Registrationresponseerrormessage:DEPRECATED_ENDPOINTJul1122:14:39archfirejail[5776]:[5:26:0711/221439.124513:ERROR:google_apis/gcm/engine/registration_request.cc:291]Registrationresponseerrormessage:DEPRECATED_ENDPOINTJul1122:16:20archfirejail[5821]:[50:57:0711/221620.130618:ERROR:net/socket/ssl_client_socket_impl.cc:963]handshakefailed;returned-1,SSLerrorcode1,net_error-202Jul1122:16:29archfirejail[5776]:[5:5:0711/221629.761528:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54]Requestedloadofchrome://newtab/forincorrectprofiletype.Jul1122:17:45archfirejail[6683]:[698:1:0711/221745.423776:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:17:45archfirejail[6683]:[698:1:0711/221745.423878:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:17:50archfirejail[6706]:[718:1:0711/221750.443851:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:17:50archfirejail[6706]:[718:1:0711/221750.443924:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:17:55archfirejail[6713]:[724:1:0711/221755.460786:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:17:55archfirejail[6713]:[724:1:0711/221755.460846:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:00archfirejail[6719]:[730:1:0711/221800.472345:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:00archfirejail[6719]:[730:1:0711/221800.472422:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:05archfirejail[6726]:[736:1:0711/221805.489913:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:05archfirejail[6726]:[736:1:0711/221805.489987:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:10archfirejail[6732]:[742:1:0711/221810.510113:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:10archfirejail[6732]:[742:1:0711/221810.510223:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:15archfirejail[6738]:[748:1:0711/221815.523320:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:15archfirejail[6738]:[748:1:0711/221815.523429:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:20archfirejail[6744]:[754:1:0711/221820.534595:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:20archfirejail[6744]:[754:1:0711/221820.534662:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:25archfirejail[6751]:[761:1:0711/221825.564823:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:25archfirejail[6751]:[761:1:0711/221825.565074:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:30archfirejail[6757]:[767:1:0711/221830.592486:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:30archfirejail[6757]:[767:1:0711/221830.592553:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:35archfirejail[6763]:[773:1:0711/221835.605308:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:35archfirejail[6763]:[773:1:0711/221835.605616:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:18:40archfirejail[6771]:[779:1:0711/221840.640774:ERROR:media/cdm/cdm_module.cc:126]CDMat/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.socouldnotbeloaded.Jul1122:18:40archfirejail[6771]:[779:1:0711/221840.640847:ERROR:media/cdm/cdm_module.cc:127]Error:/home/alex/.config/chromium/WidevineCdm/4.10.3050.0/_platform_specific/linux_x64/libwidevinecdm.so:KanndieShared-Object-Dateinichtöffnen:DieOperationistnichterlaubtJul1122:21:13archfirejail[5776]:[5:5:0711/222113.497553:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:748]Message1rejectedbyinterfaceblink.mojom.WidgetHostJul1122:21:57archfirejail[5776]:[5:26:0711/222157.679562:ERROR:google_apis/gcm/engine/registration_request.cc:291]Registrationresponseerrormessage:DEPRECATED_ENDPOINT": {
         "arch": {
-            "error_id": "TERREMIS-MKINITCPIO-001",
-            "severity": "WARNING",
-            "component": "Kernel_Initcpio",
-            "message_de": "Standard-Warnung beim Generieren des Initramfs via mkinitcpio. Dem Kernel fehlen die Firmware-Dateien für Intel QuickAssist (qat) Beschleuniger-Karten. Kann auf Desktop-Systemen ignoriert werden.",
-            "message_en": "Standard warnings during mkinitcpio image creation. The kernel modules for Intel QuickAssist Technology (qat) lack matching firmware binaries. Harmless on standard consumer hardware.",
-            "suggested_fix": "Ignorieren, oder das Paket `linux-firmware-marvell` bzw. spezifische Intel-QAT-Treiber nachinstallieren, falls die Hardware tatsächlich genutzt wird."
+            "comment_de": "j",
+            "comment_en": "j",
+            "counter": 1
         }
-    },
-    "wg-quick@wg0.service: Main process exited, code=exited, status=1/FAILURE - Failed to start WireGuard": {
-        "arch": {
-            "error_id": "TERREMIS-NET-001",
-            "severity": "ERROR",
-            "component": "Network_WireGuard",
-            "message_de": "Der WireGuard-Tunnel 'wg0' konnte nicht gestartet werden, da resolvconf beim Setzen des DNS-Servers einen Signatur-Konflikt in /etc/resolv.conf meldet oder das Interface bereits existiert.",
-            "message_en": "WireGuard service failed to initialize the 'wg0' interface. The underlying resolvconf script failed due to a signature mismatch or conflicting attributes in /etc/resolv.conf.",
-            "suggested_fix": "sudo resolvconf -u && sudo systemctl restart wg-quick@wg0"
-        }
-    },
-    "Fehler: Konnte Datei 'extra.db' nicht von Spiegelserver übertragen: Operation too slow. Less than 1 bytes/sec": {
-        "arch": {
-            "error_id": "TERREMIS-PACMAN-001",
-            "severity": "ERROR",
-            "component": "Package_Manager",
-            "message_de": "Pacman konnte die Repository-Datenbank nicht synchronisieren, weil der ausgewählte Mirror extrem langsam antwortet oder offline ist (Timeout).",
-            "message_en": "Pacman failed to sync the repository database. The connection to the selected mirror timed out due to insufficient transfer rates (less than 1 byte/sec).",
-            "suggested_fix": "sudo reflector --country Germany --latest 5 --protocol https --sort rate --save /etc/pacman.d/mirrorlist && sudo pacman -Syu"
-        }
-    },
-    "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"firejail-default\" comm=\"chromium\" requested_mask=\"read\"": {
-        "arch": {
-            "error_id": "TERREMIS-SANDBOX-001",
-            "severity": "WARNING",
-            "component": "Security_AppArmor",
-            "message_de": "AppArmor blockiert ptrace-Lesezugriffe von Chromium innerhalb der Firejail-Sandbox. Das verhindert, dass Chromium-Subprozesse sich gegenseitig tracken, schützt aber das Gesamtsystem.",
-            "message_en": "AppArmor denied a ptrace operation from Chromium running inside Firejail. This is standard hardening behavior preventing the browser from inspecting other scoped system processes.",
-            "suggested_fix": "Kein akuter Handlungsbedarf, da die Sandbox wie gewollt isoliert. Falls Chromium abstürzt, das Firejail-Profil anpassen oder `MemoryInfra`-Verbindungen explizit erlauben."
-        }
-    },
+    }
+}
