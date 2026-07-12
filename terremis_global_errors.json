@@ -26,5 +26,12 @@
             "comment_en": "j",
             "counter": 1
         }
+    },
+    "Fehler:KonnteDatei'extra.db'nichtvonmirror.hugo-betrugo.deübertragen:Operationtooslow.Lessthan1bytes/sectransferredthelast10seconds": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j",
+            "counter": 1
+        }
     }
 }
