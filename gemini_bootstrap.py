@@ -58,7 +58,7 @@ def ask_cloud_gemini_stream(model_id, prompt, system_instruction, gemma_context=
             f"Bitte optimiere und vervollständige die Lösung für den Nutzer.\n{full_prompt}"
         )
         
-    print(f"\n\033[1;33m=== TERREMIS KI ANALYSE ({VERSION} | Live Stream) ===\033[0m")
+    print(f"\n\033[1;33m=== TERREMIS KI ANALYSE (Powered by Gemini | {VERSION} | Live Stream) ===\033[0m")
     
     full_response_text = ""
     try:
