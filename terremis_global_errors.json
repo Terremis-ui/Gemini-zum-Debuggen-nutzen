@@ -33,5 +33,12 @@
             "comment_en": "j",
             "counter": 1
         }
+    },
+    "Gesamtgröße der installierten Pakete:  145,50 MiB\n==> Using default configuration file: '/etc/mkinitcpio.conf'\n==> ERROR: Failed to read configuration '/etc/mkinitcpio.conf'\nFehler: Befehl konnte n...": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j",
+            "counter": 1
+        }
     }
 }
