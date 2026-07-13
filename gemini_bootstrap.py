@@ -5,11 +5,12 @@ import site
 import importlib
 import argparse
 import json
+import shutil
 import re
 import urllib.parse
 import webbrowser
 import requests
-
+from pathlib import Path
 from google import genai
 
 # ==========================================
@@ -17,6 +18,7 @@ from google import genai
 # ==========================================
 VERSION = "v1.2.0_Beta"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Vereint zu einer einzigen, sicheren JSON-Datenbank
 DB_FILE = os.path.join(SCRIPT_DIR, "terremis_global_errors.json")
 GITHUB_REPO_URL = "https://github.com/Terremis-ui/Gemini-zum-Debuggen-nutzen"
 
@@ -60,11 +62,9 @@ def ask_cloud_gemini_stream(model_id, prompt, system_instruction, gemma_context=
     
     full_response_text = ""
     try:
-        # Hier nutzen wir das neue SDK-Streaming!
         response_stream = client.models.generate_content_stream(model=model_id, contents=full_prompt, config=config)
         for chunk in response_stream:
             if chunk.text:
-                # Wir bereinigen Markdown-Bash Codeblöcke direkt im Stream für ein schickeres CLI
                 text_chunk = chunk.text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
                 print(text_chunk, end="", flush=True)
                 full_response_text += chunk.text
@@ -103,8 +103,57 @@ def git_pull():
     except:
         print("[*] Offline-Modus: Lokale Wissensdatenbank wird verwendet.")
 
+def load_error_db():
+    """Lädt das Archiv atomar und fängt JSON-Fehler ab."""
+    target_path = Path(DB_FILE)
+    if not target_path.exists() or target_path.stat().st_size == 0:
+        return {}
+    try:
+        with open(target_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        print("[!] Datenbank beschädigt. Versuche Backup zu laden...")
+        bak_path = target_path.with_suffix('.json.bak')
+        if bak_path.exists():
+            shutil.copy2(bak_path, target_path)
+            with open(target_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {}
+
+def save_error_db_safely(data):
+    """Speichert die Fehlerdatenbank atomar mit automatischem Backup."""
+    target_path = Path(DB_FILE)
+    backup_path = target_path.with_suffix('.json.bak')
+    temp_path = target_path.with_suffix('.json.tmp')
+    
+    try:
+        if target_path.exists():
+            shutil.copy2(target_path, backup_path)
+        
+        with open(temp_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        
+        os.replace(temp_path, target_path)
+    except Exception as e:
+        print(f"[❌] Kritischer Fehler beim Speichern der DB: {e}")
+        if backup_path.exists():
+            shutil.copy2(backup_path, target_path)
+            print("[✓] Altes Backup wurde wiederhergestellt.")
+
+def clean_error_message(msg):
+    """Kürzt riesige, wiederkehrende Log-Ketten (wie den Firejail/Widevine-Block)."""
+    msg = msg.strip()
+    
+    # Erkennt sich wiederholende Firejail/Chrome-Meldungen im selben Block
+    if "archfirejail" in msg and "libwidevinecdm.so" in msg:
+        return "archfirejail: ERROR: media/cdm/cdm_module.cc - libwidevinecdm.so: Kann die Shared-Object-Datei nicht öffnen: Die Operation ist nicht erlaubt"
+        
+    if len(msg) > 200:
+        return msg[:197] + "..."
+    return msg
+
 def git_push_update():
-    """Pusht Änderungen ins GitHub-Repo (Nur für dich als Dev via SSH)."""
+    """Pusht Änderungen ins GitHub-Repo (Nur via SSH)."""
     try:
         status = subprocess.run(["git", "-C", SCRIPT_DIR, "status", "--porcelain", DB_FILE], capture_output=True, text=True)
         if not status.stdout.strip():
@@ -124,29 +173,11 @@ def git_push_update():
     except Exception as e:
         print(f"\033[1;31m[-] Git Push fehlgeschlagen: {e}\033[0m")
 
-def load_error_db():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-def save_error_db(db):
-    try:
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(db, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        print(f"[-] Fehler beim Speichern der Datenbank: {e}")
-
 def filter_critical_logs(raw_terminal_output):
     critical_lines = []
-    # "e:" fängt die typischen Debian/Apt Fehlerzeilen "E: ..." sauber ab
     keywords = ["error", "fail", "failed", "warning", "not found", "invalid", "denied", "conflict", "verletzt", "panic", "segfault", "broken", "fehler", "e:"]
     
     for line in raw_terminal_output.splitlines():
-        # Ignoriere den kosmetischen Apt-Hinweis über das CLI Interface
         if "stable cli interface" in line.lower():
             continue
             
@@ -158,7 +189,6 @@ def filter_critical_logs(raw_terminal_output):
     return None
 
 def open_pager(text):
-    """Hilfsfunktion falls aus dem Archiv gelesen wird (ersetzt fehlende Funktion aus deinem Skript-Auszug)"""
     print(text)
 
 def run_genai(api_key, raw_data, distro, mode):
@@ -172,8 +202,9 @@ def run_genai(api_key, raw_data, distro, mode):
         return
     
     db = load_error_db()
-    # Generiere einen konsistenten Key basierend auf dem bereinigten Log
-    error_key = "".join(input_data.split())
+    
+    # JETZT NEU: Nutzt die Bereinigungsfunktion, um den JSON-Key sauber zu halten!
+    error_key = clean_error_message(input_data)
     
     # --- ZÄHLER-LOGIK START ---
     if error_key not in db:
@@ -186,7 +217,6 @@ def run_genai(api_key, raw_data, distro, mode):
             "counter": 0
         }
     
-    # Zähler inkrementieren!
     if "counter" not in db[error_key][distro]:
         db[error_key][distro]["counter"] = 0
         
@@ -196,7 +226,7 @@ def run_genai(api_key, raw_data, distro, mode):
     print(f"\n\033[1;36m[*] Terremis Statistik: Dieser Fehler trat auf {distro.upper()} bereits {current_count}x auf.\033[0m")
     # --- ZÄHLER-LOGIK ENDE ---
 
-    # 1. Bekannten Fehler aus Archiv laden (Falls bereits gefixt & dokumentiert)
+    # 1. Bekannten Fehler aus Archiv laden
     if db[error_key][distro].get("comment_de") != "Bisher nicht dokumentiert.":
         print(f"\n\033[1;32m[✓] Bekannter Fehler im globalen Terremis-Archiv gefunden!\033[0m")
         if mode == "dev":
@@ -216,8 +246,7 @@ def run_genai(api_key, raw_data, distro, mode):
         )
         open_pager(output_buffer)
         
-        # Auch bei bekanntem Fehler den Counter direkt wegsichern und syncen
-        save_error_db(db)
+        save_error_db_safely(db)
         if os.path.exists(os.path.expanduser("~/.ssh/id_rsa")) or os.path.exists(os.path.expanduser("~/.ssh/id_ed25519")):
             git_push_update()
         return
@@ -235,7 +264,6 @@ def run_genai(api_key, raw_data, distro, mode):
     }
     
     base_instruction = instructions.get(distro, "Du bist der Terremis-Assistent. Analysiere diesen Fehler.")
-    # Wir fügen die Statistik-Info direkt in die System-Instruction für Gemini ein!
     current_instruction = f"{base_instruction} Hinweis für den Kontext: Dieser Fehler trat auf diesem System-Typ bereits {current_count}-mal auf."
     
     print(f"🤖 [Lokal] Prüfe Verfügbarkeit von {LOCAL_MODEL}...")
@@ -246,12 +274,11 @@ def run_genai(api_key, raw_data, distro, mode):
     if gemma_response:
         trigger_words = ["großen bruder", "gemini flash", "übersteigt meine", "kapazitäten", "kaskade"]
         if any(word in gemma_response.lower() for word in trigger_words):
-            print(f"\n⚡ [Kaskade] Gemma eskaliert zu Gemini Cloud für {distro.upper()}...\n")
+            print(f"\n⚡ [Kaskade] Gemma eskaliert zu Gemini Cloud for {distro.upper()}...\n")
             final_text = ask_cloud_gemini_stream('gemini-2.5-flash', input_data, current_instruction, gemma_context=gemma_response)
         else:
             print(f"\n✅ [Lokal] Gemma hat die Analyse direkt gelöst.\n")
             final_text = gemma_response
-            # Lokale Gemma wirft keinen Stream, wir geben es formatiert aus
             clean_text = final_text.replace("```bash", "\033[1;32m[BEFEHL]\033[0m").replace("```", "")
             print(f"\n\033[1;33m=== TERREMIS KI ANALYSE (Lokal) ===\033[0m\n{clean_text}\n\033[1;33m===================================\033[0m\n")
     else:
@@ -276,35 +303,31 @@ def run_genai(api_key, raw_data, distro, mode):
                     print("\033[1;34m-> [EN] English comment for Developers:\033[0m")
                     comment_en = tty.readline().strip()
                     
-                    # Werte in der DB anpassen, aber Counter beibehalten!
                     db[error_key][distro]["comment_de"] = comment_de if comment_de else "Keine deutsche Beschreibung."
                     db[error_key][distro]["comment_en"] = comment_en if comment_en else "No English description."
                     
-                    save_error_db(db)
+                    save_error_db_safely(db)
                     
                     if os.path.exists(os.path.expanduser("~/.ssh/id_rsa")) or os.path.exists(os.path.expanduser("~/.ssh/id_ed25519")):
                         git_push_update()
                     else:
                         print("[*] Tester-Modus: JSON lokal aktualisiert (Counter +1). Kein Push-Recht.")
                 else:
-                    # Selbst wenn kein Kommentar geschrieben wird, speichern wir den erhöhten Zähler ab!
-                    save_error_db(db)
+                    save_error_db_safely(db)
                     
         except Exception as e:
             print(f"[-] Fehler bei der Eingabe/Speicherung: {e}")
+    else:
+        # Falls via Pipe ausgeführt (nicht-interaktiv): Speichere zumindest den neuen Zähler ab!
+        save_error_db_safely(db)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Terremis Hybrid AI Bootstrapper")
-    parser.add_stdio = True  # Erlaubt das Lesen von stdin
     parser.add_argument("--distro", type=str, default="arch", help="Ziel-Distribution (default: arch)")
     parser.add_argument("--mode", type=str, default="tester", help="Modus: dev oder tester (default: tester)")
     args = parser.parse_args()
 
-    # Holt den API-Key aus der Umgebungsvariable
     api_key = os.environ.get("GEMINI_API_KEY")
-    
-    # Liest den kompletten Stream aus der Terminal-Pipe
     raw_data = sys.stdin.read()
     
-    # Startet die Zähler-Logik und die KI-Analyse
     run_genai(api_key, raw_data, args.distro, args.mode)
