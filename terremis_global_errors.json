@@ -114,7 +114,7 @@ Der Fehler "Resolving timed out after 10001 milliseconds" deutet darauf hin, das
 ---
 **Wichtiger Hinweis:**
 Die von der KI gelieferten Hinweise bezüglich "WireGuard-Tunnel mit Alex" und "Routing-Skript an den Gemini Flash in der Cloud übergeben" sind für dieses spezifische Problem der Paketverwaltung irrelevant und sollten ignoriert werden.
-",
+"
             "comment_en": "=== TERREMIS AI ANALYSIS (Powered by Gemini | v1.2.0_Beta | Live Stream) ===
 Error Analysis:
 The error "Resolving timed out after 10001 milliseconds" indicates that your system was unable to resolve the hostname fastly.mirror.pkgbuild.com into an IP address. This is a classic DNS resolution issue or a general network connection problem to the DNS servers or the mirror itself. Since this error has occurred before, it is likely a recurring network or DNS issue on your system or a temporary problem with this specific mirror.
