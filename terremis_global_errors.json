@@ -26,5 +26,26 @@
             "comment_en": "Syntax error in mkinitcpio.conf (e.g., loose blacklist lines). Fix: Clean up the config file and run 'sudo mkinitcpio -P'.",
             "counter": 1
         }
+    },
+    "Gesamtgröße der installierten Pakete:  1808,85 MiB\n==> Using default configuration file: '/etc/mkinitcpio.conf'\n==> Creating unified kernel image: '/boot/EFI/Linux/arch-linux-hardened.efi'": {
+        "arch": {
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
+        }
+    },
+    "Gesamtgröße der installierten Pakete:  926,72 MiB\n==> Using default configuration file: '/etc/mkinitcpio.conf'\n==> Creating unified kernel image: '/boot/EFI/Linux/arch-linux-hardened.efi'": {
+        "arch": {
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
+        }
+    },
+    "Fehler: Konnte Datei 'core.db' nicht von fastly.mirror.pkgbuild.com übertragen : Resolving timed out after 10001 milliseconds\nFehler: Konnte Datei 'extra.db' nicht von fastly.mirror.pkgbuild.com üb...": {
+        "arch": {
+            "comment_de": "j",
+            "comment_en": "j",
+            "counter": 1
+        }
     }
 }
