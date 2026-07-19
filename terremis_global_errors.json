@@ -50,8 +50,8 @@
     },
     "Gesamtgröße der installierten Pakete:  230,99 MiB\n==> Using default configuration file: '/etc/mkinitcpio.conf'\n==> Creating unified kernel image: '/boot/EFI/Linux/arch-linux-hardened.efi'": {
         "arch": {
-            "comment_de": "1. **Überprüfe den Inhalt von `/etc/mkinitcpio.conf`**:  Achte auf die richtige Reihenfolge und Konfiguration der Pakete, die im System installiert sind.",
-            "comment_en": "2. **Verwende `mkinitcpio -v`**:  Ermitteln Sie den Fehler mit dem Befehl `mkinitcpio -v`.",
+            "comment_de": "1. **Überprüfe den Inhalt von `/etc/mkinitcpio.conf`**:  Achte auf die richtige Reihenfolge und Konfiguration der Pakete, die im System installiert sind. 2. **Verwende `mkinitcpio -v`**:  Ermitteln Sie den Fehler mit dem Befehl `mkinitcpio -v`.",
+            "comment_en": "1. **Check the contents of /etc/mkinitcpio.conf: Pay attention to the correct order and configuration of the packages installed on the system. 2. **Use mkinitcpio -v: Determine the error by using the command mkinitcpio -v",
             "counter": 1
         }
     }
