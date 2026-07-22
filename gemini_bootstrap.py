@@ -10,6 +10,7 @@ import re
 import urllib.parse
 import webbrowser
 import requests
+import platform
 from pathlib import Path
 from google import genai
 
@@ -74,6 +75,18 @@ def ask_cloud_gemini_stream(model_id, prompt, system_instruction, gemma_context=
         return None
 
     return full_response_text
+
+def detect_os():
+    if os.path.exists("/etc/os-release"):
+        with open("/etc/os-release") as f:
+            for line in f:
+                if line.startswith("ID="):
+                    return line.split("=")[1].strip().strip('"').lower()
+    if os.path.exists("/etc/arch-release"):
+        return "arch"
+    elif os.path.exists("/etc/debian_version"):
+        return "debian"
+    return "unknown"
 
 def clean_ansi_codes(text):
     """Filtert alle \u001b[...m und Steuerzeichen sauber heraus."""
@@ -326,8 +339,17 @@ if __name__ == "__main__":
     parser.add_argument("--distro", type=str, default="arch", help="Ziel-Distribution (default: arch)")
     parser.add_argument("--mode", type=str, default="tester", help="Modus: dev oder tester (default: tester)")
     args = parser.parse_args()
-
-    api_key = os.environ.get("GEMINI_API_KEY")
-    raw_data = sys.stdin.read()
     
-    run_genai(api_key, raw_data, args.distro, args.mode)
+    api_key = os.environ.get("GEMINI_API_KEY")
+    raw_data = sys.stdin.read()  # Erst hier kommen die Daten rein!
+    
+    # 1. Automatisch das OS & Kernel erkennen
+    detected_os = detect_os()
+    kernel_version = platform.release()
+    system_context = f"System: {detected_os} | Kernel: {kernel_version}"
+    
+    # Optional: Nutze das erkannte OS als Fallback, falls kein --distro übergeben wurde
+    active_distro = args.distro if args.distro != "arch" else detected_os
+    
+    # 2. Jetzt die Logik ausführen
+    run_genai(api_key, raw_data, active_distro, args.mode)
