@@ -76,6 +76,7 @@ def ask_cloud_gemini_stream(model_id, prompt, system_instruction, gemma_context=
 
     return full_response_text
 
+
 def detect_os():
     if os.path.exists("/etc/os-release"):
         with open("/etc/os-release") as f:
@@ -88,10 +89,58 @@ def detect_os():
         return "debian"
     return "unknown"
 
+
+def sanitize_config(content: str) -> str:
+    # Schwärzt alles wie EXPORT GEMINI_API_KEY="AIzaSy...", PASSWORD="...", etc.
+    patterns = [
+        r"(?i)(api[_-]?key|token|secret|password|passphrase|auth|key|gpg|luks)\s*[:=]\s*[\"']?[^\"'\s\n]+[\"']?",
+        r"AIzaSy[a-zA-Z0-9_-]{33}",  # Spezifisches Muster für Google API Keys
+    ]
+
+    sanitized = content
+    for pattern in patterns:
+        sanitized = re.sub(
+            pattern, r"\1=[REDACTED]", sanitized, flags=re.IGNORECASE
+        )
+
+    return sanitized
+
+
+def collect_system_configs():
+    target_files = [
+        "/etc/os-release",
+        "/etc/mkinitcpio.conf",
+        "/etc/pacman.conf",
+    ]
+
+    config_summary = []
+    for file_path in target_files:
+        p = Path(file_path)
+        if p.exists() and p.is_file():
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+
+                # 1. Kommentare & Leerzeilen filtern
+                lines = [
+                    line
+                    for line in content.splitlines()
+                    if line.strip() and not line.strip().startswith("#")
+                ]
+                clean_text = "\n".join(lines[:30])
+
+                # 2. Sicherheitshalber ALLES Schwärzen, was nach Keys aussieht
+                safe_text = sanitize_config(clean_text)
+
+                config_summary.append(f"=== {p.name} ===\n{safe_text}")
+            except Exception:
+                pass
+
+    return "\n\n".join(config_summary)
+
 def clean_ansi_codes(text):
     """Filtert alle \u001b[...m und Steuerzeichen sauber heraus."""
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-    return ansi_escape.sub('', text)
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+    return ansi_escape.sub("", text)
 
 def setup_environment():
     try:
@@ -343,13 +392,16 @@ if __name__ == "__main__":
     api_key = os.environ.get("GEMINI_API_KEY")
     raw_data = sys.stdin.read()  # Erst hier kommen die Daten rein!
     
-    # 1. Automatisch das OS & Kernel erkennen
+    # 1. Automatisch OS, Kernel & Configs erfassen
     detected_os = detect_os()
     kernel_version = platform.release()
-    system_context = f"System: {detected_os} | Kernel: {kernel_version}"
+    configs = collect_system_configs()
+    
+    # System-Kontext zusammenbauen
+    full_payload = f"[System: {detected_os} | Kernel: {kernel_version}]\n[Configs:\n{configs}]\n\n{raw_data}"
     
     # Optional: Nutze das erkannte OS als Fallback, falls kein --distro übergeben wurde
     active_distro = args.distro if args.distro != "arch" else detected_os
     
-    # 2. Jetzt die Logik ausführen
-    run_genai(api_key, raw_data, active_distro, args.mode)
+    # 2. Jetzt die Logik ausführen (mit full_payload statt nur raw_data)
+    run_genai(api_key, full_payload, active_distro, args.mode)
