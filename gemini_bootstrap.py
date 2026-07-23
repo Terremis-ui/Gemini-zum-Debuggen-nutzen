@@ -345,7 +345,7 @@ def run_genai(api_key, raw_data, distro, mode):
             print(f"\n\033[1;33m=== TERREMIS KI ANALYSE (Lokal) ===\033[0m\n{clean_text}\n\033[1;33m===================================\033[0m\n")
     else:
         print("🌐 [Info] Lokale KI nicht erreichbar. Weiche aus auf Cloud-Streaming...\n")
-        models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+        models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite']
         
         for m_id in models_to_try:
             final_text = ask_cloud_gemini_stream(m_id, input_data, current_instruction)
