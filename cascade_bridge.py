@@ -1,3 +1,4 @@
+import sys
 import requests
 import json
 import os
@@ -11,14 +12,27 @@ LOCAL_MODEL = "gemma2-alex"
 client = genai.Client()
 
 def ask_local_gemma(prompt):
-    """Fragt dein lokales Gemma-Modell auf dem VPS mit erhöhtem Timeout."""
+    """Fragt dein lokales Gemma-Modell auf dem VPS mit System-Prompt gegen Paranoia."""
+    
+    # Der entscheidende System-Prompt gegen Fehlalarme!
+    system_instruction = (
+        "Du bist Terremis, ein präziser Log-Analyst für Arch Linux.\n"
+        "DEINE WICHTIGSTE REGEL:\n"
+        "Prüfe zuerst, ob überhaupt ein echter FEHLER vorliegt!\n"
+        "- Wenn ein Befehl (wie pacman, docker, systemctl) ERFOLGREICH war (z.B. Post-transaction-Hooks, keine 'ERROR:'-Zeilen), "
+        "dann halluziniere KEINE Probleme herbei (z.B. wegen kleiner Paketgrößen).\n"
+        "- Wenn alles passt, antworte kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'\n"
+        "- Analysiere und löse NUR echte Fehlermeldungen, Abstürze oder Warnings."
+    )
+
     payload = {
         "model": LOCAL_MODEL,
+        "system": system_instruction,  # <--- HIER: Zwingt Gemma zur Gelassenheit
         "prompt": prompt,
         "stream": False
     }
     try:
-        # Timeout auf 120 Sekunden erhöht, falls der VPS schwer schuften muss
+        # Timeout auf 120 Sekunden erhöht
         response = requests.post(OLLAMA_URL, json=payload, timeout=120)
         if response.status_code == 200:
             return response.json().get("response", "")
@@ -67,14 +81,8 @@ def run_cascade(prompt):
         print("\n✅ [Lokal] Gemma hat die Anfrage direkt gelöst.\n")
         return gemma_response
 
-import sys
-
-# ... (Deine Funktionen ask_local_gemma, ask_cloud_gemini und run_cascade bleiben genau wie sie sind) ...
-
 if __name__ == "__main__":
-    # Prüfen, ob der Nutzer eine Frage per Argument übergeben hat
     if len(sys.argv) > 1:
-        # Verbindet alle übergebenen Argumente zu einem einzigen Prompt-String
         user_prompt = " ".join(sys.argv[1:])
         print(run_cascade(user_prompt))
     else:
