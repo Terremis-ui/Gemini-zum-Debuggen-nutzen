@@ -23,6 +23,7 @@ def ask_local_gemma(prompt):
         "dann halluziniere KEINE Probleme herbei (z.B. wegen kleiner Paketgrößen).\n"
         "- Wenn alles passt, antworte kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'\n"
         "- Analysiere und löse NUR echte Fehlermeldungen, Abstürze oder Warnings."
+        "- Antworte auf Deutsch."
     )
 
     payload = {
