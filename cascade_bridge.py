@@ -19,13 +19,14 @@ def ask_local_gemma(prompt):
     DEINE WICHTIGSTE REGEL:
     Prüfe zuerst, ob überhaupt ein echter FEHLER vorliegt!
     - Wenn ein Befehl (wie pacman, docker, systemctl) ERFOLGREICH war (z.B. Post-transaction-Hooks, keine 'ERROR:'-Zeilen), dann halluziniere KEINE Probleme herbei.
+    - Wenn alles sauber läuft und KEINE Meldungen wie 'failed', 'error', 'fatal' oder 'assertion failed' enthalten sind, antworte kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'
+    - Wenn 'failed', 'error' oder 'warning' im Log auftauchen, analysiere kurz die Ursache (z. B. PipeWire, Bluetooth, Service-Absturz).
     - Wenn alles passt oder kein expliziter Fehler (error, failed, fatal) vorliegt, antworte AUSSCHLIESSLICH kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'
     - Analysiere und löse NUR echte Fehlermeldungen, Abstürze oder Warnings.
     - Nutze ausschließlich Arch-Linux-Standards (z.B. journalctl statt /var/log/syslog).
     - Nenne bei Auffälligkeiten immer den genauen Pfad zur relevanten Config-Datei und die betroffene Zeile/Funktion.
     - Das System nutzt AUSSCHLIESSLICH pacman und das AUR. Erwähne NIEMALS apt, dpkg oder Debian/Ubuntu-Befehle, außer es wird ausdrücklich '--debian' im Befehl angehängt.
-    - Antworte auf Deutsch.
-
+    - Antworte auf Deutsch."""
 
     payload = {
         "model": LOCAL_MODEL,
@@ -46,20 +47,13 @@ def ask_local_gemma(prompt):
         return f"Verbindung zu Gemma fehlgeschlagen: {e}"
 
 def ask_cloud_gemini(prompt, gemma_context=""):
-    """Fragt Gemini Flash über das topaktuelle genai-SDK."""
-    full_prompt = f"""
-    Ein Nutzer hat eine komplexe Anfrage gestellt. Unsere lokale, kleine KI (Gemma) 
-    konnte die Aufgabe nicht rechtzeitig oder vollständig lösen.
-    
-    Bisheriger Status von Gemma:
-    ---
-    {gemma_context}
-    ---
-    
+    full_prompt = f"""Du bist Gemini Flash, der große Bruder im Kaskaden-System.
+    Gemma konnte dieses Log nicht lösen oder brauchte Hilfe.
+    Gemma-Kontext: {gemma_context}
+
     Bitte löse die ursprüngliche Anfrage des Nutzers umfassend und professionell.
-    Ursprüngliche Anfrage: {prompt}
-    """
-    
+    Ursprüngliche Anfrage: {prompt}"""
+
     # Nutzung des neuen SDKs und des aktuellen Modells
     response = client.models.generate_content(
         model='gemini-2.5-flash',
