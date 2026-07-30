@@ -2,40 +2,36 @@ import sys
 import requests
 import json
 import os
+import select
 from google import genai
 
 # --- KONFIGURATION ---
 OLLAMA_URL = "http://10.66.66.1:11434/api/generate"
 LOCAL_MODEL = "gemma2-alex"
 
-# Neues Gemini SDK initialisieren (zieht den KEY automatisch aus os.environ["GEMINI_API_KEY"])
+# Neues Gemini SDK initialisieren
 client = genai.Client()
 
 def ask_local_gemma(prompt):
-    """Fragt dein lokales Gemma-Modell auf dem VPS mit System-Prompt gegen Paranoia."""
+    """Fragt dein lokales Gemma-Modell mit scharfgestelltem Log-Analyse-Prompt."""
     
     system_instruction = """Du bist Terremis, ein präziser Log-Analyst für Arch Linux.
 
-    DEINE WICHTIGSTE REGEL:
-    Prüfe zuerst, ob überhaupt ein echter FEHLER vorliegt!
-    - Wenn ein Befehl (wie pacman, docker, systemctl) ERFOLGREICH war (z.B. Post-transaction-Hooks, keine 'ERROR:'-Zeilen), dann halluziniere KEINE Probleme herbei.
-    - Wenn alles sauber läuft und KEINE Meldungen wie 'failed', 'error', 'fatal' oder 'assertion failed' enthalten sind, antworte kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'
-    - Wenn 'failed', 'error' oder 'warning' im Log auftauchen, analysiere kurz die Ursache (z. B. PipeWire, Bluetooth, Service-Absturz).
-    - Wenn alles passt oder kein expliziter Fehler (error, failed, fatal) vorliegt, antworte AUSSCHLIESSLICH kurz: 'Alles grün: Der Vorgang war erfolgreich und weist keine Fehler auf.'
-    - Analysiere und löse NUR echte Fehlermeldungen, Abstürze oder Warnings.
-    - Nutze ausschließlich Arch-Linux-Standards (z.B. journalctl statt /var/log/syslog).
-    - Nenne bei Auffälligkeiten immer den genauen Pfad zur relevanten Config-Datei und die betroffene Zeile/Funktion.
-    - Das System nutzt AUSSCHLIESSLICH pacman und das AUR. Erwähne NIEMALS apt, dpkg oder Debian/Ubuntu-Befehle, außer es wird ausdrücklich '--debian' im Befehl angehängt.
-    - Antworte auf Deutsch."""
+AUFGABE:
+Analysiere das übergebene Log und fasse das Ergebnis kurz zusammen.
+
+REGELN:
+- Wenn du Fehler, Warnungen oder abgebrochene Dienste findest: Erkläre in 2-3 Sätzen die Ursache und betroffene Komponente. Nenne keine Paketnamen zum Installieren, es sei denn, sie stehen wörtlich im Log.
+- Wenn das Log fehlerfrei ist: Sag einfach kurz in deinen eigenen Worten, dass alles sauber gelaufen ist.
+- Antworte direkt auf Deutsch, ohne Meta-Überschriften oder Prompt-Regeln zu wiederholen."""
 
     payload = {
         "model": LOCAL_MODEL,
-        "system": system_instruction,  # <--- HIER: Zwingt Gemma zur Gelassenheit
+        "system": system_instruction,
         "prompt": prompt,
         "stream": False
     }
     try:
-        # Timeout auf 120 Sekunden erhöht
         response = requests.post(OLLAMA_URL, json=payload, timeout=120)
         if response.status_code == 200:
             return response.json().get("response", "")
@@ -48,13 +44,12 @@ def ask_local_gemma(prompt):
 
 def ask_cloud_gemini(prompt, gemma_context=""):
     full_prompt = f"""Du bist Gemini Flash, der große Bruder im Kaskaden-System.
-    Gemma konnte dieses Log nicht lösen oder brauchte Hilfe.
-    Gemma-Kontext: {gemma_context}
+Gemma konnte dieses Log nicht lösen oder brauchte Hilfe.
+Gemma-Kontext: {gemma_context}
 
-    Bitte löse die ursprüngliche Anfrage des Nutzers umfassend und professionell.
-    Ursprüngliche Anfrage: {prompt}"""
+Bitte löse die ursprüngliche Anfrage des Nutzers umfassend und professionell.
+Ursprüngliche Anfrage: {prompt}"""
 
-    # Nutzung des neuen SDKs und des aktuellen Modells
     response = client.models.generate_content(
         model='gemini-2.5-flash',
         contents=full_prompt,
@@ -62,25 +57,35 @@ def ask_cloud_gemini(prompt, gemma_context=""):
     return response.text
 
 def run_cascade(prompt):
-    print(f"🤖 [Lokal] Sende Anfrage an {LOCAL_MODEL}...")
+    print(f"🤖 [Lokal] Sende Anfrage an {LOCAL_MODEL}...\n")
     gemma_response = ask_local_gemma(prompt)
     
-    # Trigger-Wörter für geplante Eskalation ODER automatischer Timeout-Abfang
     trigger_words = ["großen bruder", "gemini flash", "übersteigt meine", "kapazitäten", "kaskade", "gemma-timeout"]
     needs_escalation = any(word in gemma_response.lower() for word in trigger_words)
     
     if needs_escalation:
-        print("\n⚡ [Kaskade] Gemma braucht Hilfe oder Zeitüberschreitung. Eskaliere zu Gemini Flash...\n")
+        print("⚡ [Kaskade] Gemma braucht Hilfe oder Zeitüberschreitung. Eskaliere zu Gemini Flash...\n")
         cloud_response = ask_cloud_gemini(prompt, gemma_context=gemma_response)
         return cloud_response
     else:
-        print("\n✅ [Lokal] Gemma hat die Anfrage direkt gelöst.\n")
+        print("✅ [Lokal] Gemma hat die Anfrage direkt gelöst.\n")
         return gemma_response
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        user_prompt = " ".join(sys.argv[1:])
-        print(run_cascade(user_prompt))
+    pipe_data = ""
+    # Liest STDIN aus, wenn Daten reingepiped werden (ohne isatty-Sperre)
+    if not sys.stdin.isatty():
+        pipe_data = sys.stdin.read().strip()
+
+    user_args = " ".join(sys.argv[1:]).strip()
+
+    if pipe_data and user_args:
+        prompt = f"{user_args}\n\nLog-Inhalt:\n{pipe_data}"
+        print(run_cascade(prompt))
+    elif pipe_data:
+        prompt = f"Analysiere folgendes Log:\n{pipe_data}"
+        print(run_cascade(prompt))
+    elif user_args:
+        print(run_cascade(user_args))
     else:
-        print("💡 Verwendung: ask \"Deine Frage hier\"")
-        print("Beispiel: ask \"Schreibe ein Python-Skript für Backups\"")
+        print("💡 Verwendung: ask \"Deine Frage\" oder journalctl -n 20 | ask")
