@@ -61,5 +61,12 @@
             "comment_en": "Not documented yet.",
             "counter": 1
         }
+    },
+    "Gesamtgröße der installierten Pakete:  39,05 MiB": {
+        "arch": {
+            "comment_de": "Bisher nicht dokumentiert.",
+            "comment_en": "Not documented yet.",
+            "counter": 1
+        }
     }
 }
